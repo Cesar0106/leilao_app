@@ -1,0 +1,8 @@
+# .gitignore
+
+# Ignorar configurações locais do Streamlit
+.streamlit/secrets.toml
+
+# Ignorar outros arquivos sensíveis
+*.pyc
+__pycache__/
