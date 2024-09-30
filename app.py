@@ -6,21 +6,25 @@ def main():
 
     session = SessionLocal()
 
+    # Obter leilões ativos
     leiloes = session.query(Leilao).filter(Leilao.ativo == True).all()
     if not leiloes:
         st.warning("Nenhum leilão disponível no momento.")
         session.close()
         return
 
+    # Selecionar leilão
     leilao_selecionado = st.selectbox(
         "Selecione um leilão",
         leiloes,
         format_func=lambda l: f"{l.item} (ID: {l.id})"
     )
 
+    # Exibir detalhes do leilão
     st.write(f"**Descrição:** {leilao_selecionado.descricao}")
     st.write(f"**Valor Mínimo:** R$ {leilao_selecionado.valor_minimo:.2f}")
 
+    # Formulário para dar lance
     with st.form("Dar Lance"):
         usuario = st.text_input("Seu Nome", max_chars=50)
         valor = st.number_input("Valor do Lance", min_value=leilao_selecionado.valor_minimo, step=0.01)
@@ -28,6 +32,7 @@ def main():
 
         if submit:
             if usuario and valor:
+                # Verificar se o lance é maior que o lance atual
                 lance_mais_alto = session.query(Lance).filter_by(leilao_id=leilao_selecionado.id).order_by(Lance.valor.desc()).first()
                 if lance_mais_alto and valor <= lance_mais_alto.valor:
                     st.error(f"O valor do lance deve ser maior que o lance atual de R$ {lance_mais_alto.valor:.2f}.")
@@ -43,11 +48,13 @@ def main():
             else:
                 st.error("Preencha todos os campos.")
 
+    # Exibir o lance atual com o nome do usuário
     st.header("Lance Atual")
     lance_mais_alto = session.query(Lance).filter_by(leilao_id=leilao_selecionado.id).order_by(Lance.valor.desc()).first()
 
     if lance_mais_alto:
         st.write(f"**Valor do Lance Atual:** R$ {lance_mais_alto.valor:.2f}")
+        st.write(f"**Usuário:** {lance_mais_alto.usuario}")
     else:
         st.write("Ainda não há lances para este leilão.")
 
